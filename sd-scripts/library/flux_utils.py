@@ -47,12 +47,14 @@ def analyze_checkpoint_state(
     """
     # if not huggingface_repo_id or not pretrained_model_name_or_path:
     #     raise ValueError("Both 'huggingface_repo_id' and 'pretrained_model_name_or_path' must be provided.")
-    print("******")
+    print("******1")
     
-    print(pretrained_model_name_or_path)
+   
     print(huggingface_repo_id)
 
-    print("******")
+    print("******2")
+    print(pretrained_model_name_or_path)
+    print("*****3")
 
     logger.info(f"Checking the state dict: Diffusers or BFL, dev or schnell")
 
