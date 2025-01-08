@@ -137,7 +137,7 @@ class FluxNetworkTrainer(train_network.NetworkTrainer):
         return flux_utils.MODEL_VERSION_FLUX_V1, [clip_l, t5xxl], ae, model
 
     def get_tokenize_strategy(self, args):
-        print(args)
+        # print(args)
         _, is_schnell, _, _ = flux_utils.analyze_checkpoint_state(args.pretrained_model_name_or_path)
 
         if args.t5xxl_max_token_length is None:
