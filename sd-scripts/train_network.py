@@ -323,7 +323,7 @@ class NetworkTrainer:
         if args.seed is None:
             args.seed = random.randint(0, 2**32)
         set_seed(args.seed)
-        print(args)
+        print(type(args))
 
         tokenize_strategy = self.get_tokenize_strategy(args)
         strategy_base.TokenizeStrategy.set_strategy(tokenize_strategy)
