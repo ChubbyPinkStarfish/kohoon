@@ -323,6 +323,7 @@ class NetworkTrainer:
         if args.seed is None:
             args.seed = random.randint(0, 2**32)
         set_seed(args.seed)
+        print(args)
 
         tokenize_strategy = self.get_tokenize_strategy(args)
         strategy_base.TokenizeStrategy.set_strategy(tokenize_strategy)
@@ -1508,7 +1509,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
     train_util.verify_command_line_training_args(args)
     args = train_util.read_config_from_file(args, parser)
-    print(args)
+    # print(args)
 
     trainer = NetworkTrainer()
     trainer.train(args)
