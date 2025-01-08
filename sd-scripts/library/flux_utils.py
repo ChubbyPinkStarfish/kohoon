@@ -26,10 +26,7 @@ MODEL_NAME_DEV = "dev"
 MODEL_NAME_SCHNELL = "schnell"
 
 
-def analyze_checkpoint_state(
-    huggingface_repo_id: str = None,
-    pretrained_model_name_or_path: str = None
-) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
+def analyze_checkpoint_state(huggingface_repo_id: str,pretrained_model_name_or_path: str) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
     """
     Analyze the state of a checkpoint downloaded from Hugging Face to determine if it is Diffusers or BFL,
     dev or schnell, calculate the number of blocks, and return the results.
