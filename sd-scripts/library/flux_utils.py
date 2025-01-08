@@ -27,15 +27,16 @@ MODEL_NAME_SCHNELL = "schnell"
 
 
 def analyze_checkpoint_state(
-    huggingface_repo_id: str, pretrained_model_name_or_path: str
+    huggingface_repo_id: str = None,
+    pretrained_model_name_or_path: str = None
 ) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
     """
     Analyze the state of a checkpoint downloaded from Hugging Face to determine if it is Diffusers or BFL,
     dev or schnell, calculate the number of blocks, and return the results.
 
     Args:
-        repo_id (str): The Hugging Face repository ID (e.g., 'username/repo').
-        filename (str): Name of the checkpoint file in the repository.
+        huggingface_repo_id (str, optional): The Hugging Face repository ID (e.g., 'username/repo').
+        pretrained_model_name_or_path (str, optional): Name of the checkpoint file in the repository.
 
     Returns:
         Tuple[bool, bool, Tuple[int, int], List[str]]:
@@ -44,6 +45,9 @@ def analyze_checkpoint_state(
             - Tuple[int, int]: Number of double blocks and single blocks.
             - List[str]: List of keys in the checkpoint.
     """
+    if not huggingface_repo_id or not pretrained_model_name_or_path:
+        raise ValueError("Both 'huggingface_repo_id' and 'pretrained_model_name_or_path' must be provided.")
+    
     logger.info(f"Checking the state dict: Diffusers or BFL, dev or schnell")
 
     # Download the checkpoint from Hugging Face
@@ -98,6 +102,7 @@ def analyze_checkpoint_state(
     num_single_blocks = max_single_block_index + 1
 
     return is_diffusers, is_schnell, (num_double_blocks, num_single_blocks), ckpt_paths
+
 def load_flow_model(
     ckpt_path: str, dtype: Optional[torch.dtype], device: Union[str, torch.device], disable_mmap: bool = False
 ) -> Tuple[bool, flux_models.Flux]:
