@@ -9,6 +9,7 @@ from accelerate import init_empty_weights
 from safetensors import safe_open
 from safetensors.torch import load_file
 from transformers import CLIPConfig, CLIPTextModel, T5Config, T5EncoderModel
+from huggingface_hub import hf_hub_download
 
 from library.utils import setup_logging
 
@@ -25,24 +26,26 @@ MODEL_NAME_DEV = "dev"
 MODEL_NAME_SCHNELL = "schnell"
 
 
-def analyze_checkpoint_state(ckpt_path: str) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
+def analyze_checkpoint_state(repo_id: str, ckpt_path: str) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
     """
-    チェックポイントの状態を分析し、DiffusersかBFLか、devかschnellか、ブロック数を計算して返す。
+    Analyze the state of a checkpoint to determine if it is Diffusers or BFL, dev or schnell,
+    calculate the number of blocks, and return the results.
 
     Args:
-        ckpt_path (str): チェックポイントファイルまたはディレクトリのパス。
+        repo_id (str): The Hugging Face repository ID (e.g., 'username/repo').
+        ckpt_path (str): Path to the checkpoint file or directory.
 
     Returns:
         Tuple[bool, bool, Tuple[int, int], List[str]]:
-            - bool: Diffusersかどうかを示すフラグ。
-            - bool: Schnellかどうかを示すフラグ。
-            - Tuple[int, int]: ダブルブロックとシングルブロックの数。
-            - List[str]: チェックポイントに含まれるキーのリスト。
+            - bool: Flag indicating if the checkpoint is Diffusers.
+            - bool: Flag indicating if the checkpoint is Schnell.
+            - Tuple[int, int]: Number of double blocks and single blocks.
+            - List[str]: List of keys in the checkpoint.
     """
-    # check the state dict: Diffusers or BFL, dev or schnell, number of blocks
     logger.info(f"Checking the state dict: Diffusers or BFL, dev or schnell")
 
-    if os.path.isdir(ckpt_path):  # if ckpt_path is a directory, it is Diffusers
+    # Check if the path is a directory or multi-part file and construct file paths
+    if os.path.isdir(ckpt_path):  # If ckpt_path is a directory, assume it's Diffusers
         ckpt_path = os.path.join(ckpt_path, "transformer", "diffusion_pytorch_model-00001-of-00003.safetensors")
     if "00001-of-00003" in ckpt_path:
         ckpt_paths = [ckpt_path.replace("00001-of-00003", f"0000{i}-of-00003") for i in range(1, 4)]
@@ -51,17 +54,24 @@ def analyze_checkpoint_state(ckpt_path: str) -> Tuple[bool, bool, Tuple[int, int
 
     keys = []
     for ckpt_path in ckpt_paths:
+        # Check if the file exists locally, otherwise download it
+        if not os.path.exists(ckpt_path):
+            print(f"Downloading {ckpt_path} from {repo_id}...")
+            ckpt_path = hf_hub_download(repo_id=repo_id, filename=os.path.basename(ckpt_path))
+        
+        # Open the checkpoint file and retrieve keys
         with safe_open(ckpt_path, framework="pt") as f:
             keys.extend(f.keys())
 
-    # if the key has annoying prefix, remove it
+    # Remove annoying prefix if it exists
     if keys[0].startswith("model.diffusion_model."):
         keys = [key.replace("model.diffusion_model.", "") for key in keys]
 
+    # Determine whether the checkpoint is Diffusers or Schnell
     is_diffusers = "transformer_blocks.0.attn.add_k_proj.bias" in keys
     is_schnell = not ("guidance_in.in_layer.bias" in keys or "time_text_embed.guidance_embedder.linear_1.bias" in keys)
 
-    # check number of double and single blocks
+    # Calculate the number of double and single blocks
     if not is_diffusers:
         max_double_block_index = max(
             [int(key.split(".")[1]) for key in keys if key.startswith("double_blocks.") and key.endswith(".img_attn.proj.bias")]
@@ -89,7 +99,6 @@ def analyze_checkpoint_state(ckpt_path: str) -> Tuple[bool, bool, Tuple[int, int
     num_single_blocks = max_single_block_index + 1
 
     return is_diffusers, is_schnell, (num_double_blocks, num_single_blocks), ckpt_paths
-
 
 def load_flow_model(
     ckpt_path: str, dtype: Optional[torch.dtype], device: Union[str, torch.device], disable_mmap: bool = False
