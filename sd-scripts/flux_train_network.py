@@ -579,6 +579,8 @@ if __name__ == "__main__":
     args = parser.parse_args()
     train_util.verify_command_line_training_args(args)
     args = train_util.read_config_from_file(args, parser)
+    print('ooolala')
+    print(args)
 
     trainer = FluxNetworkTrainer()
     trainer.train(args)
