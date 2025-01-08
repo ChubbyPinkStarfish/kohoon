@@ -26,14 +26,16 @@ MODEL_NAME_DEV = "dev"
 MODEL_NAME_SCHNELL = "schnell"
 
 
-def analyze_checkpoint_state(repo_id: str, ckpt_path: str) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
+def analyze_checkpoint_state(
+    repo_id: str, filename: str
+) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
     """
-    Analyze the state of a checkpoint to determine if it is Diffusers or BFL, dev or schnell,
-    calculate the number of blocks, and return the results.
+    Analyze the state of a checkpoint downloaded from Hugging Face to determine if it is Diffusers or BFL,
+    dev or schnell, calculate the number of blocks, and return the results.
 
     Args:
         repo_id (str): The Hugging Face repository ID (e.g., 'username/repo').
-        ckpt_path (str): Path to the checkpoint file or directory.
+        filename (str): Name of the checkpoint file in the repository.
 
     Returns:
         Tuple[bool, bool, Tuple[int, int], List[str]]:
@@ -44,21 +46,18 @@ def analyze_checkpoint_state(repo_id: str, ckpt_path: str) -> Tuple[bool, bool, 
     """
     logger.info(f"Checking the state dict: Diffusers or BFL, dev or schnell")
 
-    # Check if the path is a directory or multi-part file and construct file paths
-    if os.path.isdir(ckpt_path):  # If ckpt_path is a directory, assume it's Diffusers
-        ckpt_path = os.path.join(ckpt_path, "transformer", "diffusion_pytorch_model-00001-of-00003.safetensors")
-    if "00001-of-00003" in ckpt_path:
+    # Download the checkpoint from Hugging Face
+    logger.info(f"Downloading {filename} from repository {repo_id}...")
+    ckpt_path = hf_hub_download(repo_id=repo_id, filename=filename)
+
+    # If the file is a multi-part checkpoint, construct paths for all parts
+    if "00001-of-00003" in filename:
         ckpt_paths = [ckpt_path.replace("00001-of-00003", f"0000{i}-of-00003") for i in range(1, 4)]
     else:
         ckpt_paths = [ckpt_path]
 
     keys = []
     for ckpt_path in ckpt_paths:
-        # Check if the file exists locally, otherwise download it
-        if not os.path.exists(ckpt_path):
-            print(f"Downloading {ckpt_path} from {repo_id}...")
-            ckpt_path = hf_hub_download(repo_id=repo_id, filename=os.path.basename(ckpt_path))
-        
         # Open the checkpoint file and retrieve keys
         with safe_open(ckpt_path, framework="pt") as f:
             keys.extend(f.keys())
@@ -99,7 +98,6 @@ def analyze_checkpoint_state(repo_id: str, ckpt_path: str) -> Tuple[bool, bool, 
     num_single_blocks = max_single_block_index + 1
 
     return is_diffusers, is_schnell, (num_double_blocks, num_single_blocks), ckpt_paths
-
 def load_flow_model(
     ckpt_path: str, dtype: Optional[torch.dtype], device: Union[str, torch.device], disable_mmap: bool = False
 ) -> Tuple[bool, flux_models.Flux]:
