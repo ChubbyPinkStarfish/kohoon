@@ -45,9 +45,9 @@ def analyze_checkpoint_state(
             - Tuple[int, int]: Number of double blocks and single blocks.
             - List[str]: List of keys in the checkpoint.
     """
-    if not huggingface_repo_id or not pretrained_model_name_or_path:
-        raise ValueError("Both 'huggingface_repo_id' and 'pretrained_model_name_or_path' must be provided.")
-    
+    # if not huggingface_repo_id or not pretrained_model_name_or_path:
+    #     raise ValueError("Both 'huggingface_repo_id' and 'pretrained_model_name_or_path' must be provided.")
+    print(pretrained_model_name_or_path)
     logger.info(f"Checking the state dict: Diffusers or BFL, dev or schnell")
 
     # Download the checkpoint from Hugging Face
