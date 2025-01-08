@@ -27,7 +27,7 @@ MODEL_NAME_SCHNELL = "schnell"
 
 
 def analyze_checkpoint_state(
-    repo_id: str, filename: str
+    huggingface_repo_id: str, pretrained_model_name_or_path: str
 ) -> Tuple[bool, bool, Tuple[int, int], List[str]]:
     """
     Analyze the state of a checkpoint downloaded from Hugging Face to determine if it is Diffusers or BFL,
@@ -47,11 +47,11 @@ def analyze_checkpoint_state(
     logger.info(f"Checking the state dict: Diffusers or BFL, dev or schnell")
 
     # Download the checkpoint from Hugging Face
-    logger.info(f"Downloading {filename} from repository {repo_id}...")
-    ckpt_path = hf_hub_download(repo_id=repo_id, filename=filename)
+    logger.info(f"Downloading {pretrained_model_name_or_path} from repository {huggingface_repo_id}...")
+    ckpt_path = hf_hub_download(repo_id=huggingface_repo_id, filename=pretrained_model_name_or_path)
 
     # If the file is a multi-part checkpoint, construct paths for all parts
-    if "00001-of-00003" in filename:
+    if "00001-of-00003" in pretrained_model_name_or_path:
         ckpt_paths = [ckpt_path.replace("00001-of-00003", f"0000{i}-of-00003") for i in range(1, 4)]
     else:
         ckpt_paths = [ckpt_path]
