@@ -17,6 +17,42 @@ import numpy as np
 from safetensors.torch import load_file
 
 
+from typing import Union, Optional
+import torch
+from safetensors.torch import load_file
+from huggingface_hub import hf_hub_download
+
+def load_safetensors2(
+    path: str,
+    device: Union[str, torch.device],
+    disable_mmap: bool = False,
+    dtype: Optional[torch.dtype] = torch.float32,
+    repo_id: Optional[str] = None,  # Add repo_id to handle Hugging Face repos
+    filename: Optional[str] = None,  # Specify filename when using Hugging Face
+) -> dict[str, torch.Tensor]:
+    # Check if we are using a Hugging Face repo
+    if repo_id and filename:
+        # Download the file from Hugging Face
+        path = hf_hub_download(repo_id=repo_id, filename=filename)
+    
+    if disable_mmap:
+        # Memory-efficient loading without mmap
+        state_dict = {}
+        with MemoryEfficientSafeOpen(path) as f:
+            for key in f.keys():
+                state_dict[key] = f.get_tensor(key).to(device, dtype=dtype)
+        return state_dict
+    else:
+        try:
+            state_dict = load_file(path, device=device)
+        except:
+            state_dict = load_file(path)  # Prevent device invalid Error
+        if dtype is not None:
+            for key in state_dict.keys():
+                state_dict[key] = state_dict[key].to(dtype=dtype)
+        return state_dict
+
+
 def fire_in_thread(f, *args, **kwargs):
     threading.Thread(target=f, args=args, kwargs=kwargs).start()
 
@@ -363,7 +399,13 @@ def load_safetensors(
         return state_dict
     else:
         try:
-            state_dict = load_file(path, device=device)
+            state_dict = load_safetensors(
+    path=None,  # Path is not needed for Hugging Face, set it to None
+    device=device,  # Or "cpu"
+    repo_id="black-forest-labs/FLUX.1-dev",
+    filename="flux1-dev.safetensors",
+    
+)
         except:
             state_dict = load_file(path)  # prevent device invalid Error
         if dtype is not None:
