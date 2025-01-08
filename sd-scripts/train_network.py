@@ -325,7 +325,7 @@ class NetworkTrainer:
         set_seed(args.seed)
         print(type(args))
 
-        tokenize_strategy = self.get_tokenize_strategy(args)
+        tokenize_strategy = self.get_tokenize_strategy(args.huggingface_repo_id,args.pretrained_model_name_or_path)
         strategy_base.TokenizeStrategy.set_strategy(tokenize_strategy)
         tokenizers = self.get_tokenizers(tokenize_strategy)  # will be removed after sample_image is refactored
 

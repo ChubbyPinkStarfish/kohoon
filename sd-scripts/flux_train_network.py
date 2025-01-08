@@ -138,7 +138,7 @@ class FluxNetworkTrainer(train_network.NetworkTrainer):
 
     def get_tokenize_strategy(self, args):
         # print(args)
-        _, is_schnell, _, _ = flux_utils.analyze_checkpoint_state(args.pretrained_model_name_or_path)
+        _, is_schnell, _, _ = flux_utils.analyze_checkpoint_state(args.huggingface_repo_id,args.pretrained_model_name_or_path)
 
         if args.t5xxl_max_token_length is None:
             if is_schnell:
