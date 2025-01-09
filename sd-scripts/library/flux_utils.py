@@ -164,7 +164,7 @@ def load_ae(
         ae = flux_models.AutoEncoder(flux_models.configs[MODEL_NAME_DEV].ae_params).to(dtype)
 
     logger.info(f"Loading state dict from {ckpt_path}")
-    sd = load_safetensors(None, device=str(device), disable_mmap=disable_mmap, dtype=dtype)
+    sd = load_safetensors(ckpt_path,huggingface_repo_id="black-forest-labs/FLUX.1-dev",huggingface_filename="ae.safetensors",device=str(device), disable_mmap=disable_mmap, dtype=dtype)
     info = ae.load_state_dict(sd, strict=False, assign=True)
     logger.info(f"Loaded AE: {info}")
     return ae
@@ -345,7 +345,7 @@ def load_t5xxl(
         sd = state_dict
     else:
         logger.info(f"Loading state dict from {ckpt_path}")
-        sd = load_safetensors(ckpt_path, device=str(device), disable_mmap=disable_mmap, dtype=dtype)
+        sd = load_safetensors(ckpt_path,huggingface_repo_id="stabilityai/stable-diffusion-3-medium",huggingface_filename="text_encoders/t5xxl_fp16.safetensors", device=str(device), disable_mmap=disable_mmap, dtype=dtype)
     info = t5xxl.load_state_dict(sd, strict=False, assign=True)
     logger.info(f"Loaded T5xxl: {info}")
     return t5xxl
