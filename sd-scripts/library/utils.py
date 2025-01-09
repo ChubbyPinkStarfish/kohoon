@@ -386,12 +386,38 @@ class MemoryEfficientSafeOpen:
 
 
 def load_safetensors(
-    path: str, device: Union[str, torch.device], disable_mmap: bool = False, dtype: Optional[torch.dtype] = torch.float32
+    path: str,
+    huggingface_repo_id: str,
+    huggingface_filename: str ,
+    device: Union[str, torch.device],
+    disable_mmap: bool = False,
+    dtype: Optional[torch.dtype] = torch.float32,
+   
 ) -> dict[str, torch.Tensor]:
+    """
+    Load safetensors from a local path or Hugging Face repository.
+
+    Args:
+        path (str): Local file path. Ignored if downloading from Hugging Face.
+        device (Union[str, torch.device]): Device to load tensors onto.
+        disable_mmap (bool): If True, disables memory mapping for loading.
+        dtype (Optional[torch.dtype]): Data type for tensors.
+        huggingface_repo_id (Optional[str]): Hugging Face repository ID.
+        huggingface_filename (Optional[str]): Filename in the Hugging Face repository.
+
+    Returns:
+        dict[str, torch.Tensor]: State dictionary loaded from the safetensors file.
+    """
+    # If Hugging Face parameters are provided, download the file
+    if huggingface_repo_id and huggingface_filename:
+        try:
+            path = hf_hub_download(repo_id=huggingface_repo_id, filename=huggingface_filename)
+            print(f"Downloaded {huggingface_filename} from {huggingface_repo_id} to {path}")
+        except Exception as e:
+            raise RuntimeError(f"Failed to download {huggingface_filename} from {huggingface_repo_id}: {e}")
+    
+    # Load the safetensors file
     if disable_mmap:
-        # return safetensors.torch.load(open(path, "rb").read())
-        # use experimental loader
-        # logger.info(f"Loading without mmap (experimental)")
         state_dict = {}
         with MemoryEfficientSafeOpen(path) as f:
             for key in f.keys():
@@ -401,7 +427,7 @@ def load_safetensors(
         try:
             state_dict = load_file(path, device=device)
         except:
-            state_dict = load_file(path)  # prevent device invalid Error
+            state_dict = load_file(path)  # Prevent device invalid error
         if dtype is not None:
             for key in state_dict.keys():
                 state_dict[key] = state_dict[key].to(dtype=dtype)
