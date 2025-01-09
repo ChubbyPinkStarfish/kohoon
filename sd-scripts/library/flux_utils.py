@@ -290,7 +290,7 @@ def load_clip_l(
         sd = state_dict
     else:
         logger.info(f"Loading state dict from {ckpt_path}")
-        sd = load_safetensors(ckpt_path,"stabilityai/stable-diffusion-3-medium","text_encoders/clip_l.safetensors", device=str(device), disable_mmap=disable_mmap, dtype=dtype)
+        sd = load_safetensors(ckpt_path,huggingface_repo_id="stabilityai/stable-diffusion-3-medium",huggingface_filename="text_encoders/clip_l.safetensors", device=str(device), disable_mmap=disable_mmap, dtype=dtype)
     info = clip.load_state_dict(sd, strict=False, assign=True)
     logger.info(f"Loaded CLIP-L: {info}")
     return clip
