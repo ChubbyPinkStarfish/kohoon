@@ -109,9 +109,9 @@ def analyze_checkpoint_state(huggingface_repo_id: str,pretrained_model_name_or_p
     return is_diffusers, is_schnell, (num_double_blocks, num_single_blocks), ckpt_paths
 
 def load_flow_model(
-    ckpt_path: str, dtype: Optional[torch.dtype], device: Union[str, torch.device], disable_mmap: bool = False
+    ckpt_path: str,huggingface_repo_id:str ,dtype: Optional[torch.dtype], device: Union[str, torch.device], disable_mmap: bool = False
 ) -> Tuple[bool, flux_models.Flux]:
-    is_diffusers, is_schnell, (num_double_blocks, num_single_blocks), ckpt_paths = analyze_checkpoint_state(ckpt_path)
+    is_diffusers, is_schnell, (num_double_blocks, num_single_blocks), ckpt_paths = analyze_checkpoint_state(ckpt_path,huggingface_repo_id)
     name = MODEL_NAME_DEV if not is_schnell else MODEL_NAME_SCHNELL
 
     # build model
