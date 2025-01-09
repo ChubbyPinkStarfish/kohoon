@@ -164,7 +164,7 @@ def load_ae(
         ae = flux_models.AutoEncoder(flux_models.configs[MODEL_NAME_DEV].ae_params).to(dtype)
 
     logger.info(f"Loading state dict from {ckpt_path}")
-    sd = load_safetensors(ckpt_path, device=str(device), disable_mmap=disable_mmap, dtype=dtype)
+    sd = load_safetensors(None, device=str(device), disable_mmap=disable_mmap, dtype=dtype)
     info = ae.load_state_dict(sd, strict=False, assign=True)
     logger.info(f"Loaded AE: {info}")
     return ae

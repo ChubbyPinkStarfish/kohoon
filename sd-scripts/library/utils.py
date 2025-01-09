@@ -387,12 +387,12 @@ class MemoryEfficientSafeOpen:
 
 def load_safetensors(
     path: str,
-    huggingface_repo_id: str,
-    huggingface_filename: str ,
+    
     device: Union[str, torch.device],
     disable_mmap: bool = False,
     dtype: Optional[torch.dtype] = torch.float32,
-   
+    huggingface_repo_id: Optional[str] = None,
+    huggingface_filename: Optional[str] = None
 ) -> dict[str, torch.Tensor]:
     """
     Load safetensors from a local path or Hugging Face repository.
