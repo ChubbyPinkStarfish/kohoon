@@ -399,13 +399,7 @@ def load_safetensors(
         return state_dict
     else:
         try:
-            state_dict = load_safetensors(
-    path=None,  # Path is not needed for Hugging Face, set it to None
-    device=device,  # Or "cpu"
-    repo_id="black-forest-labs/FLUX.1-dev",
-    filename="flux1-dev.safetensors",
-    
-)
+            state_dict = load_file(path, device=device)
         except:
             state_dict = load_file(path)  # prevent device invalid Error
         if dtype is not None:
